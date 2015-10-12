@@ -42,9 +42,11 @@ def gen_model(dir):
         fields = load_fields(t) 
 
         li = []
+        li.append('<?php')
         li.append('class %s {' % (className) )
         li.append('var %s;' % (','.join('$%s' % (f.Field)  for f in fields)  ) ) #$id, $first_name, $last_name, $email
         li.append('}')
+        li.append('?>')
 
         lfile = '%s%s.inc' % (dir,className)
         save_file(lfile,li)
@@ -57,6 +59,8 @@ def gen_dao(dir):
         fields = load_fields(t)
 
         li = []
+        li.append('<?php')
+        li.append('require_once("../model/%s.inc");' % (formatTableName(t)) )
         li.append('class %s {' % (className))
 
         li.append('var $conn;')
@@ -65,22 +69,39 @@ def gen_dao(dir):
         li.append('function save(&$vo) { if ($v->pk_id == 0) { $this->insert($vo); } else { $this->update($vo); } }')
 
         li.append('function get($pk_id) {')        
-        li.append('　　}')
+        li.append('$sql = "select * from users where pk_id=:pk_id";')
+        li.append('$p = $this->conn->prepare($sql);')
+        li.append('$p->execute(array(":pk_id"=>$pk_id));')
+        li.append('$vo = new %s();' % ( formatTableName(t) )  )  
+        li.append('$this->getFromResult($vo,$p) ; ') 
+        li.append('return $vo;')      
+        li.append('}')
 
-        li.append('　　function delete(&$vo) {')
-        li.append('　　}') 
+        li.append('function delete(&$vo) {')
+        li.append('}') 
 
         li.append('#-- private functions')
-        li.append('　function getFromResult(&vo, $result) {')
-        li.append('　}') 
+        li.append('function getFromResult(&$vo, $result) {')
+        li.append('$r = $result->fetchAll();')
+        for f in fields:
+            li.append('$vo->%s = $r[0]["%s"];' % (f.Field,f.Field)  )        
+        li.append('}') 
 
-        li.append('　function update(&$vo) {')
-        li.append('　　　}')
+        li.append('function update(&$vo) {')
+        li.append('}')
 
-        li.append('　　function insert(&$vo) {')
-        li.append('　}')
+        li.append('function insert(&$vo) {')
+        li.append('}')
 
         li.append('}')
+
+        # test
+        li.append('$conn  = new PDO("mysql:host=192.168.1.111;dbname=plants","root","root");')
+        li.append('$dao = new %s($conn);'%(className))
+        li.append('$result = $dao -> get(1);')
+        li.append('print_r($result);')
+
+        li.append('?>')
 
         lfile = '%s%s.inc' % (dir,className)
         save_file(lfile,li)
