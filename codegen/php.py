@@ -2,20 +2,18 @@
 # -*- coding: utf-8 -*-
 import os
 import web
-
 import sys
 reload(sys)
 sys.setdefaultencoding( "utf-8" )
+
+# 基于如下设计：
+#http://www.ruanyifeng.com/blog/2010/12/php_best_practices.html
+#
 
 host = '192.168.1.111'
 db = 'plants'
 user = 'root'
 pw = 'root'
-
-
-# 基于如下设计：
-#http://www.ruanyifeng.com/blog/2010/12/php_best_practices.html
-#
 source_dir = '/Users/gaotianpu/github/wdc/plants/php/'
 
 dbr = web.database(dbn='mysql', host=host, db=db, user=user, pw=pw)
@@ -40,17 +38,15 @@ def save_file(lfile,li):
 
 def gen_config(dir):
     li = []
-    li.append('<?php')
-    li.append('class Config {')
-    li.append('public static $conn = new PDO("mysql:host=%s;dbname=%s","%s","%s");' % (host,db,user,pw) )
+    li.append('<?php')     
+    li.append('define("ROOT","/");')
+    li.append('define("DB_HOST", "mysql:host=%s;dbname=%s");' % (host,db) )
+    li.append('define("DB_USER","%s");'%(user))
+    li.append('define("DB_PWD","%s");'%(pw))
     li.append('')
     li.append('')
     li.append('')
-    li.append('')
-    li.append('')
-    li.append('')
-    li.append('')
-    li.append('}')
+    # li.append('}')
     li.append('?>')
 
     lfile = '%sconfig.inc' % (dir)
