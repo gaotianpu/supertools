@@ -109,7 +109,7 @@ def gen_dao(dir):
 
         li = []
         li.append('<?php')
-        li.append('require_once("../model/%s.inc");' % (formatTableName(t)) )
+        # li.append('require_once("../model/%s.inc");' % (formatTableName(t)) )
         li.append('class %s {' % (className))
 
         li.append('var $conn;')
@@ -127,6 +127,10 @@ def gen_dao(dir):
         li.append('}')
 
         li.append('function delete(&$vo) {')
+        li.append('$sql = "update replies set status=1 where pk_id=:pk_id ";')
+        li.append('$p = $this->conn->prepare($sql);')
+        li.append('$p->execute(array(":pk_id"=>$vo->pk_id));')
+        li.append('$p->rowCount(); ')
         li.append('}') 
 
         li.append('#-- private functions')
@@ -169,22 +173,97 @@ def gen_dao(dir):
         li.append('}')
 
 
-
         li.append('}') 
         li.append('?>')
 
         lfile = '%s%s.inc' % (dir,className)
         save_file(lfile,li)
 
+def gen_logic(logic_lib_dir):
+    tables = load_tables()
+    for t in tables:
+        className = '%sLogic' % (formatTableName(t) )
+        fields = load_fields(t)
+        li = []
+        li.append('<?php') 
+        li.append('class %s {' % (className))
+
+        li.append('}') 
+        li.append('?>')
+
+        lfile = '%s%s.inc' % (logic_lib_dir,className)
+        save_file(lfile,li)
+
+def gen_controller(control_dir):
+    tables = load_tables()
+    for t in tables:
+        className = '%sController' % (formatTableName(t) )
+        fields = load_fields(t)
+        li = []
+        li.append('<?php') 
+        li.append('class %s {' % (className))
+        
+        li.append('}') 
+        li.append('?>')
+
+        lfile = '%s%s.inc' % (control_dir,className)
+        save_file(lfile,li)
+
+def gen_parts(parts_dir):
+    # header,footer,sidebar
+    tables = load_tables()
+    for t in tables:
+        className = '%sPage' % (formatTableName(t) )
+        fields = load_fields(t)
+        li = []
+        li.append('<?php') 
+        li.append('class %s {' % (className))
+        
+        li.append('}') 
+        li.append('?>')
+
+        lfile = '%s%s.inc' % (parts_dir,className)
+        save_file(lfile,li)
+
+def gen_phpfile(source_dir):    
+    for page in ['index','login','register','getpwd','photo']:
+        li = []
+        li.append('<?php') 
+        li.append('?>')
+        lfile = '%s%s.php' % (source_dir,page)
+        save_file(lfile,li)
+
+    tables = load_tables()
+    for t in tables:
+        className = '%s' % (formatTableName(t) )
+        fields = load_fields(t)
+        li = []
+        li.append('<?php') 
+        li.append('?>')
+        lfile = '%s%s.php' % (source_dir,className)
+        # save_file(lfile,li)
 
 def run():    
     lib_dir = '%slib/'%(source_dir)
-    common_lib_dir = '%slib/common/'%(source_dir)
-    model_lib_dir = '%slib/model/'%(source_dir)
-    dao_lib_dir = '%slib/dao/'%(source_dir)
-    logic_lib_dir = '%slib/logic/'%(source_dir)
-    parts_dir = '%sparts/'%(source_dir)
+    common_lib_dir = '%scommon/'%(lib_dir)
+    model_lib_dir = '%smodel/'%(lib_dir)
+    dao_lib_dir = '%sdao/'%(lib_dir)
+    logic_lib_dir = '%slogic/'%(lib_dir)
     control_dir = '%scontrol/'%(source_dir)
+    parts_dir = '%sparts/'%(source_dir)
+    admin_dir = '%sadmin/'%(source_dir)
+
+    static_dir = '%sstatic/'%(source_dir)  #/static/favio.icon,logo.png, lib-zip.js? 
+    js_dir = '%s/js/'%(static_dir)
+    css_dir = '%s/css/'%(static_dir) 
+    img_dir = '%s/img/'%(static_dir) 
+    font_dir = '%s/font/'%(static_dir) 
+
+    os.system('mkdir %s' % (static_dir) )   
+    os.system('mkdir %s' % (js_dir) )   
+    os.system('mkdir %s' % (css_dir) )   
+    os.system('mkdir %s' % (img_dir) )   
+    os.system('mkdir %s' % (font_dir) )     
 
     os.system('mkdir %s'%(source_dir))
     os.system('mkdir %s' % (lib_dir))
@@ -192,14 +271,17 @@ def run():
     os.system('mkdir %s' % (model_lib_dir))
     os.system('mkdir %s' % (dao_lib_dir))
     os.system('mkdir %s' % (logic_lib_dir))
-    os.system('mkdir %s' % (parts_dir)   )  
     os.system('mkdir %s' % (control_dir))
+    os.system('mkdir %s' % (parts_dir) )     
 
     gen_config(lib_dir)
-    gen_basic(lib_dir)
-    
+    gen_basic(lib_dir)    
     gen_model(model_lib_dir) 
     gen_dao(dao_lib_dir) 
+    gen_logic(logic_lib_dir)
+    gen_controller(control_dir)
+    gen_parts(parts_dir)
+    gen_phpfile(source_dir)
 
 
 
