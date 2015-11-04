@@ -10,11 +10,13 @@ sys.setdefaultencoding( "utf-8" )
 #http://www.ruanyifeng.com/blog/2010/12/php_best_practices.html
 #
 
-host = '192.168.1.111'
+host = '127.0.0.1'
 db = 'plants'
 user = 'root'
 pw = 'root'
 source_dir = '/Users/gaotianpu/github/wdc/plants/php/'
+private_dir = '%sprivate/' % (source_dir)
+public_dir ='%spublic/' % (source_dir)
 
 dbr = web.database(dbn='mysql', host=host, db=db, user=user, pw=pw)
 
@@ -38,8 +40,7 @@ def save_file(lfile,li):
 
 def gen_config(dir):
     li = []
-    li.append('<?php')     
-    li.append('define("ROOT","/");')
+    li.append('<?php')         
     li.append('define("DB_HOST", "mysql:host=%s;dbname=%s");' % (host,db) )
     li.append('define("DB_USER","%s");'%(user))
     li.append('define("DB_PWD","%s");'%(pw))
@@ -54,18 +55,16 @@ def gen_config(dir):
 
 def gen_basic(dir):
     li = []
-    li.append('<?php')     
-    li.append('global $ROOT=$_SERVER["DOCUMENT_ROOT"];')
-    li.append('require_once("$ROOT/lib/config.inc");')
+    li.append('<?php')      
 
     tables = load_tables()
     for t in tables:
         className = formatTableName(t) 
-        li.append('require_once("$ROOT/lib/model/%s.inc");' % (className) )
+        li.append('require_once($ROOT_DIR."/private/model/%s.inc");' % (className) )
     
     for t in tables:
         className = '%sDAO' % (formatTableName(t) )
-        li.append('require_once("$ROOT/lib/dao/%s.inc");' % (className) )
+        li.append('require_once($ROOT_DIR."/private/dao/%s.inc");' % (className) )
 
     li.append('')
     li.append('')
@@ -217,9 +216,7 @@ def gen_parts(parts_dir):
         fields = load_fields(t)
         li = []
         li.append('<?php') 
-        li.append('class %s {' % (className))
-        
-        li.append('}') 
+         
         li.append('?>')
 
         lfile = '%s%s.inc' % (parts_dir,className)
@@ -231,7 +228,7 @@ def gen_phpfile(source_dir):
         li.append('<?php') 
         li.append('?>')
         lfile = '%s%s.php' % (source_dir,page)
-        save_file(lfile,li)
+        # save_file(lfile,li)
 
     tables = load_tables()
     for t in tables:
@@ -245,19 +242,23 @@ def gen_phpfile(source_dir):
 
 def run():    
     lib_dir = '%slib/'%(source_dir)
-    common_lib_dir = '%scommon/'%(lib_dir)
-    model_lib_dir = '%smodel/'%(lib_dir)
-    dao_lib_dir = '%sdao/'%(lib_dir)
-    logic_lib_dir = '%slogic/'%(lib_dir)
-    control_dir = '%scontrol/'%(source_dir)
-    parts_dir = '%sparts/'%(source_dir)
+
+    common_lib_dir = '%scommon/'%(private_dir)
+    model_lib_dir = '%smodel/'%(private_dir)
+    dao_lib_dir = '%sdao/'%(private_dir)
+    logic_lib_dir = '%slogic/'%(private_dir)
+    control_dir = '%scontrol/'%(private_dir)
+    templates_dir = '%stemplates/'%(private_dir)
     admin_dir = '%sadmin/'%(source_dir)
 
-    static_dir = '%sstatic/'%(source_dir)  #/static/favio.icon,logo.png, lib-zip.js? 
+    static_dir = '%sstatic/'%(public_dir)  #/static/favio.icon,logo.png, lib-zip.js? 
     js_dir = '%s/js/'%(static_dir)
     css_dir = '%s/css/'%(static_dir) 
     img_dir = '%s/img/'%(static_dir) 
-    font_dir = '%s/font/'%(static_dir) 
+    font_dir = '%s/fonts/'%(static_dir) 
+
+    os.system('mkdir %s' % (private_dir) )  
+    os.system('mkdir %s' % (public_dir) )   
 
     os.system('mkdir %s' % (static_dir) )   
     os.system('mkdir %s' % (js_dir) )   
@@ -266,23 +267,27 @@ def run():
     os.system('mkdir %s' % (font_dir) )     
 
     os.system('mkdir %s'%(source_dir))
-    os.system('mkdir %s' % (lib_dir))
+    #os.system('mkdir %s' % (lib_dir))
     os.system('mkdir %s' % (common_lib_dir))
     os.system('mkdir %s' % (model_lib_dir))
     os.system('mkdir %s' % (dao_lib_dir))
     os.system('mkdir %s' % (logic_lib_dir))
     os.system('mkdir %s' % (control_dir))
-    os.system('mkdir %s' % (parts_dir) )     
+    os.system('mkdir %s' % (templates_dir) )     
 
-    gen_config(lib_dir)
-    gen_basic(lib_dir)    
+    gen_config(private_dir)
+    gen_basic(private_dir)    
     gen_model(model_lib_dir) 
     gen_dao(dao_lib_dir) 
     gen_logic(logic_lib_dir)
     gen_controller(control_dir)
-    gen_parts(parts_dir)
+    gen_parts(templates_dir)
     gen_phpfile(source_dir)
 
+    os.system('pwd')
+    os.system('cp -R ./static/. %s' % (static_dir) )   
+
+#mysqldump -h 192.168.1.111 -uroot -proot --skip-lock-tables database > plants.sql
 
 
 if __name__ == '__main__':
