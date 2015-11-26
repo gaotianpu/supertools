@@ -58,23 +58,24 @@ def gen_config(dir):
     li.append('}')
     li.append('?>')
 
-    lfile = '%sconfig.inc' % (dir)
+    lfile = '%sconfig.inc.gen' % (dir)
     save_file(lfile,li)
 
 def gen_basic(dir):
     li = []
-    li.append('<?php')      
+    li.append('<?php')   
+    li.append('require_once(ROOT_DIR."/private/dao/BaseDAO.inc");')   
 
     tables = load_tables()
     for t in tables:
         className = formatTableName(t) 
-        li.append('require_once($ROOT_DIR."/private/model/%s.inc");' % (className) )
-        li.append('require_once($ROOT_DIR."/private/dao/%s.inc");' % ('%sDAO' % ( className )) )
-        li.append('require_once($ROOT_DIR."/private/logic/%s.inc");' % ( '%sLogic' % ( className ) ) )     
+        li.append('require_once(ROOT_DIR."/private/model/%s.inc");' % (className) )
+        li.append('require_once(ROOT_DIR."/private/dao/%s.inc");' % ('%sDAO' % ( className )) )
+        li.append('require_once(ROOT_DIR."/private/logic/%s.inc");' % ( '%sLogic' % ( className ) ) )     
         li.append('') 
     li.append('?>')
 
-    lfile = '%sbase.inc' % (dir)
+    lfile = '%sbase.inc.gen' % (dir)
     save_file(lfile,li)
 
 
@@ -93,7 +94,7 @@ def _gen_model(dir,t,fields):
     li.append('}')
     li.append('?>')
 
-    lfile = '%s%s.inc' % (dir,className)
+    lfile = '%s%s.inc.gen' % (dir,className)
     save_file(lfile,li)
 
 
@@ -165,7 +166,7 @@ def _gen_dao(dir,t,fields):
     li.append('}') 
     li.append('?>')
 
-    lfile = '%s%s.inc' % (dir,className)
+    lfile = '%s%s.inc.gen' % (dir,className)
     save_file(lfile,li)
         
 
@@ -180,7 +181,7 @@ def _gen_logic(logic_lib_dir,t,fields):
     li.append('}') 
     li.append('?>')
 
-    lfile = '%s%s.inc' % (logic_lib_dir,className)
+    lfile = '%s%s.inc.gen' % (logic_lib_dir,className)
     save_file(lfile,li)       
 
 
@@ -195,7 +196,7 @@ def _gen_controller(control_dir,t,fields):
     li.append('}') 
     li.append('?>')
 
-    lfile = '%s%s.inc' % (control_dir,className)
+    lfile = '%s%s.inc.gen' % (control_dir,className)
     save_file(lfile,li)
 
 
@@ -210,7 +211,7 @@ def gen_parts(parts_dir):
          
         li.append('?>')
 
-        lfile = '%s%s.inc' % (parts_dir,className)
+        lfile = '%s%s.inc.gen' % (parts_dir,className)
         save_file(lfile,li)
 
 def gen_phpfile(source_dir):    
@@ -252,48 +253,34 @@ def gen_controller(control_dir):
         _gen_controller(control_dir,t)
 
  
-def gen_all():
+def gen_all_tables():
     tables = load_tables()
     for t in tables:
-        className = formatTableName(t) 
-        fields = load_fields(t) 
-        _gen_model(model_lib_dir,t,fields)
-        _gen_dao(dao_lib_dir,t,fields)
-        _gen_logic(logic_lib_dir,t,fields)
-        _gen_controller(control_dir,t,fields)
+        gen_table(t) 
 
-
-def run():   
-    gen_config(private_dir)
-    gen_basic(private_dir)   
-    
-    gen_all()
-
-    # gen_model(model_lib_dir) 
-    # gen_dao(dao_lib_dir) 
-    # gen_logic(logic_lib_dir)
-    # gen_controller(control_dir)
-    gen_parts(templates_dir)
-    gen_phpfile(source_dir)
-
-
-
-    os.system('pwd')
-    os.system('cp -R ./static/. %s' % (static_dir) )   
-
-def run1(t):
+def gen_table(t):
     className = formatTableName(t) 
     fields = load_fields(t) 
     _gen_model(model_lib_dir,t,fields)
     _gen_dao(dao_lib_dir,t,fields)
     _gen_logic(logic_lib_dir,t,fields)
-    pass 
-#mysqldump -h 192.168.1.111 -uroot -proot --skip-lock-tables database > plants.sql
 
 
-if __name__ == '__main__':
-    run()
-    # run1('user_plants')
+def run():   
+    mkdir()
+    os.system('cp -R ./static/. %s' % (static_dir) )
+    os.system('cp -R ./templates/php/BaseDAO.inc %sBaseDAO.inc' % (dao_lib_dir) ) 
+
+    gen_config(private_dir)
+    gen_basic(private_dir)     
+    gen_all_tables() 
+
+    # gen_parts(templates_dir)
+    # gen_phpfile(source_dir) 
+
+  
+if __name__ == '__main__':    
+    run() 
 
 
 

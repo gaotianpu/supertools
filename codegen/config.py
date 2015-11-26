@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import web
+
 
 
 host = '127.0.0.1'
