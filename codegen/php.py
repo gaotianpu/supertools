@@ -15,7 +15,7 @@ common_lib_dir = '%scommon/'%(private_dir)
 model_lib_dir = '%smodel/'%(private_dir)
 dao_lib_dir = '%sdao/'%(private_dir)
 logic_lib_dir = '%slogic/'%(private_dir)
-control_dir = '%scontrol/'%(private_dir)
+control_dir = '%scontroller/'%(private_dir)
 templates_dir = '%stemplates/'%(private_dir)
 admin_dir = '%sadmin/'%(source_dir)
 
@@ -43,6 +43,10 @@ def mkdir():
     os.system('mkdir %s' % (logic_lib_dir))
     os.system('mkdir %s' % (control_dir))
     os.system('mkdir %s' % (templates_dir) ) 
+
+    os.system('cp -R ./static/. %s' % (static_dir) )
+    os.system('cp -R ./templates/php/BaseDAO.inc %sBaseDAO.inc.gen' % (dao_lib_dir) ) 
+    os.system('cp -R ./templates/php/index.php %sindex.php.gen' % (public_dir) ) 
 
  
 def gen_config(dir):
@@ -107,8 +111,9 @@ def _gen_dao(dir,t,fields):
 
     li.append('function save(&$vo) { if ($vo->pk_id == 0) { $this->insert($vo); } else { $this->update($vo); } }')
 
-    li.append('function get($pk_id) {')        
-    li.append('$sql = "select * from %s where pk_id=:pk_id";'%(t))
+    li.append('function get($pk_id) {')  
+
+    li.append('$sql = "select %s from %s where pk_id=:pk_id";'%(','.join([f.Field for f in fields]),t))
     li.append('$p = $this->dbR->prepare($sql);')
     li.append('$p->execute(array(":pk_id"=>$pk_id));')
     li.append('$vo = new %s();' % ( formatTableName(t) )  )  
@@ -268,8 +273,7 @@ def gen_table(t):
 
 def run():   
     mkdir()
-    os.system('cp -R ./static/. %s' % (static_dir) )
-    os.system('cp -R ./templates/php/BaseDAO.inc %sBaseDAO.inc' % (dao_lib_dir) ) 
+    
 
     gen_config(private_dir)
     gen_basic(private_dir)     
