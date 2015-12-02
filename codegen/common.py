@@ -22,7 +22,7 @@ def load_fields(table_name):
 
 def save_file(lfile,li):
     if os.path.exists(lfile): 
-        os.system('cp -f %s %s.bak' % (lfile,lfile) ) 
+        # os.system('cp -f %s %s.bak' % (lfile,lfile) ) 
         os.system('rm -f %s' % (lfile) )
 
     print '\r\n'.join(li)+'\r\n'
