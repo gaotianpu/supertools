@@ -68,7 +68,8 @@ def gen_config(dir):
 def gen_basic(dir):
     li = []
     li.append('<?php')   
-    li.append('require_once(ROOT_DIR."/private/dao/BaseDAO.inc");')   
+    li.append('require_once(ROOT_DIR."/private/dao/BaseDAO.inc");')  
+    li.append('require_once(ROOT_DIR."/private/controller/BaseController.inc");')   
 
     tables = load_tables()
     for t in tables:
@@ -272,9 +273,7 @@ def gen_table(t):
 
 
 def run():   
-    mkdir()
-    
-
+    mkdir() 
     gen_config(private_dir)
     gen_basic(private_dir)     
     gen_all_tables() 
@@ -284,7 +283,8 @@ def run():
 
   
 if __name__ == '__main__':    
-    run() 
+    # run() 
+    gen_table('upload_batches')
 
 
 
