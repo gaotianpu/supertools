@@ -4,6 +4,28 @@ import pyPdf
 import nltk
 import operator
 
+def cleanLines(line):   #去掉数字标点和非字母字符
+    identify = string.maketrans('', '')  
+    delEStr = string.punctuation +string.digits  #ASCII 标点符号，数字    
+    cleanLine = line.translate(identify,delEStr) #去掉ASCII 标点符号和空格  
+    cleanLine =line.translate(identify,delEStr) #去掉ASCII 标点符号  
+    return cleanLine
+
+def cleanWords(wordsInStr):#去掉标点符号，长度小于3的词以及non-alpha词，小写化
+    cleanWords=[]
+    stopwords = {}.fromkeys([ line.rstrip()for line in open(conf.PreConfig.ENSTOPWORDS)])
+    for words in wordsInStr:
+        cleanWords+= [[w.lower() for w in words if w.lower() not in stopwords and 1<=len(w)]]
+    return cleanWords
+
+def stemWords(cleanWordsList):  #使用Wordnet进行词干化
+    stemWords=[]  
+    #porter = nltk.PorterStemmer()#有博士说这个词干化工具效果不好，不是很专业  
+    #result=[porter.stem(t) for t incleanTokens]  
+    for words in cleanWordsList:  
+        stemWords+=[[wn.morphy(w) for w in words]]  
+    return stemWords  
+
 def convertPdf2String(path):    
     pdf = pyPdf.PdfFileReader(file(path, "rb"))
     print pdf.getNumPages()
@@ -12,6 +34,7 @@ def convertPdf2String(path):
         content = content + page.extractText().encode("ascii", "ignore") 
 
     # tokenizer  = nltk.RegexpTokenizer(r'w+')
+    #http://blog.csdn.net/caicai1617/article/details/21690911
     tokens = nltk.word_tokenize(content)
 
     x = nltk.FreqDist(tokens)
